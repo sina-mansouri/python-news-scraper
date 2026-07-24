@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tech News Aggregator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📰 Latest Tech Headlines</h1>
+        <button onclick="fetchNews()">Refresh News</button>
+        <ul id="news-list"></ul>
+    </div>
+
+    <script>
+        async function fetchNews() {
+            await fetch('http://localhost:8000/api/scrape');
+            const res = await fetch('http://localhost:8000/api/news');
+            const data = await res.json();
+            
+            const list = document.getElementById('news-list');
+            list.innerHTML = '';
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${item.link}" target="_blank">${item.title}</a>`;
+                list.appendChild(li);
+            });
+        }
+        fetchNews();
+    </script>
+</body>
+</html>
