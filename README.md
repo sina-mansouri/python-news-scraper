@@ -39,7 +39,15 @@ git clone https://github.com/sina-mansouri/python-news-scraper.git
 cd python-news-scraper
 ```
 
-2. **Build and start all containers:**
+2. **Create your environment file:**
+
+```bash
+cp .env.example .env
+```
+
+Then open `.env` and set a real, strong value for `POSTGRES_PASSWORD` (don't leave the default in place).
+
+3. **Build and start all containers:**
 
 ```bash
 docker compose up -d --build
@@ -50,10 +58,10 @@ This starts three containers:
 | Service    | Container name  | Host port | Purpose                  |
 |------------|------------------|-----------|---------------------------|
 | `api`      | `news_api`       | `8000`    | FastAPI backend           |
-| `db`       | `news_db`        | `5432`    | PostgreSQL database       |
+| `db`       | `news_db`        | *(internal only)* | PostgreSQL database |
 | `frontend` | `news_frontend`  | `8081`    | Static web UI (Nginx)     |
 
-3. **Open the frontend:**
+4. **Open the frontend:**
 
 ```
 http://localhost:8081
@@ -76,16 +84,17 @@ The API is available directly at `http://localhost:8000`.
 
 ## ⚙️ Configuration
 
-Set via environment variables in `docker-compose.yml` (`api` and `db` services):
+Set via a `.env` file (copied from `.env.example`) that `docker-compose.yml` reads automatically:
 
-| Variable            | Description         | Default    |
-|----------------------|----------------------|------------|
-| `DB_HOST`            | Postgres hostname    | `db`       |
-| `POSTGRES_DB`        | Database name        | `newsdb`   |
-| `POSTGRES_USER`      | Database user        | `postgres` |
-| `POSTGRES_PASSWORD`  | Database password    | `postgres` |
+| Variable            | Description         | Default in `.env.example`      |
+|----------------------|----------------------|----------------------------------|
+| `POSTGRES_DB`        | Database name        | `newsdb`                         |
+| `POSTGRES_USER`      | Database user        | `postgres`                       |
+| `POSTGRES_PASSWORD`  | Database password    | *(you must set your own)*        |
 
-> ⚠️ **Security note:** The default credentials (`postgres` / `postgres`) are hardcoded directly in `docker-compose.yml`, and the Postgres port (`5432`) is published to the host. That's fine for local development, but **before deploying anywhere reachable from the internet**: move these values into a `.env` file (already excluded via `.gitignore`), set a strong password, and remove the public `5432:5432` port mapping unless external DB access is specifically needed.
+`DB_HOST` is set directly in `docker-compose.yml` to `db` (the internal Docker network name of the database container) and doesn't need to be in `.env`.
+
+✅ **Fixed:** credentials are no longer hardcoded in `docker-compose.yml`, `.env` is excluded via `.gitignore` (so it's never committed), and the Postgres port (`5432`) is no longer published to the host by default — the `db` container is only reachable from the `api` container over the internal Docker network. Uncomment the `ports:` line under the `db` service only if you specifically need to connect from a local DB client.
 
 ---
 
@@ -112,6 +121,7 @@ python-news-scraper/
 │   └── style.css
 ├── Dockerfile
 ├── docker-compose.yml
+├── .env.example           # Copy to .env and fill in your own values
 ├── .gitignore
 ├── LICENSE
 └── README.md
